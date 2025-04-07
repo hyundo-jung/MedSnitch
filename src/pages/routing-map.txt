@@ -1,0 +1,22 @@
+app 
+|
+|
+Homepage 
+|                |                | 
+|                |                | 
+Log In          Sign up          info pages (dataset info, medical bill fraud, about the team/project)
+\                /               
+    \        /
+        |
+        |
+    Profile page 
+        |
+        |
+    /        \
+claim list    new claim -- full page results
+|
+|
+claim summary/results 
+|
+|
+full page results
