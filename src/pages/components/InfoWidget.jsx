@@ -1,3 +1,4 @@
+// homepage infowidget 
 import { useState } from 'react'
 import '../styles/InfoWidget.css' 
 

@@ -94,11 +94,34 @@
     
   }
 
+  .flowchart {
+    position: relative; 
+    top: 200px; 
+  }
+
+  .flowchart-text {
+    color: #FFF;
+    font-family: libre; 
+    font-size: 45px;
+    font-style: normal;
+    font-weight: 900;
+    line-height: 55px;
+    width: 456px;
+    height: 149px;
+  }
+
+  .arrow {
+    stroke-width: 5px;
+    stroke: #FFF;
+  }
+
   .widgets {
     display: flex; 
     flex-direction: row; 
     gap: 40px; 
     justify-self: center;
   }
+
+  
   
   
