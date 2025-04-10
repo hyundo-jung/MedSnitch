@@ -18,13 +18,14 @@
     color: #FFF; 
     background: #3C3B3E;
     border-radius: 15px;
-    width: 440px;
+    width: 455px;
     height: 115px;
     text-align: center;
     font-family: mono;
     font-size: 40px;
     line-height: 50px; 
-    padding-top: 15px; 
+    padding: 10px; 
+    box-sizing: border-box;
     transition: color 0.3s ease, background 0.3s ease; 
 }
 
@@ -32,7 +33,7 @@
     color: #3C3B3E;
     background: #E4BEF7;
     border-radius: 8px;
-    width: 440px;
+    width: 455px;
     height: 125px;
 }
 
