@@ -23,6 +23,7 @@
     display: flex; 
     justify-content: center;
     align-items: center; 
+    margin-right: -60px; 
   }
   
   .logo:hover {
@@ -34,21 +35,24 @@
     flex-direction: row;
     align-items: center;
     height: 100vh;  
+    justify-content: center;
   }
   
   .title {
     display: flex; 
     flex-direction: column; 
-    gap: 10px;  
+    gap: 5px;  
     position: relative; 
+    width: 690px; 
+    left: 30px; 
   }
   
   .motto {
-    width: 800px;
+    width: 750px;
     height: 304px;
     color: #E4BEF7;
     font-family: libre;
-    font-size: 96px;
+    font-size: 85px;
     font-style: normal;
     font-weight: 900;
     line-height: 85px; /* 88.542% */
@@ -58,7 +62,7 @@
   
   .intro {
     font-family: mono; 
-    font-size: 36px;
+    font-size: 29.25px;
     font-style: normal;
     font-weight: 700;
     line-height: 40px;
@@ -68,46 +72,61 @@
   
   .scroll {
     font-family: mono; 
-    font-size: 36px; 
+    font-size: 25px; 
     position: absolute; 
     top: 80%; 
     left: 50%;   
     transform: translateX(-50%);
   }
-  
+
+  .scroll-arrow {
+    position: relative; 
+    top: -20px; 
+  }
+
+  .buttons {
+    position: absolute; 
+    top: 90px; 
+    right: 90px; 
+    display: flex; 
+    gap: 20px; 
+  }
+
   .login-button {
     text-align: center;
     font-family: mono;
-    font-size: 32px;
+    font-size: 25px;
     border-radius: 15px;
     background-color: #3C3B3E;
-    border: 4px solid #B6FFDA;
-    position: absolute;  
-    top: 90px; 
-    right: 90px; 
+    border: 3px solid #B6FFDA;
     transition: background-color 0.3s ease, color 0.3s ease; 
   }
   
   .login-button:hover {
     background-color:  #B6FFDA;
     color: #3C3B3E; 
-    
   }
 
   .flowchart {
     position: relative; 
-    top: 200px; 
+    top: 80px; 
+    width: 1000px; 
+    height: 1000px; 
   }
 
   .flowchart-text {
     color: #FFF;
     font-family: libre; 
-    font-size: 45px;
+    font-size: 35px;
     font-style: normal;
     font-weight: 900;
-    line-height: 55px;
+    line-height: 45px;
     width: 456px;
     height: 149px;
+    position: absolute; 
+    left: 50%; 
+    transform: translate(-50%); 
+    top: 400px; 
   }
 
   .arrow {
@@ -115,11 +134,20 @@
     stroke: #FFF;
   }
 
+  .learn-more {
+    font-family: mono; 
+    font-size: 29.25px;
+    position: relative; 
+    top: 250px; 
+  }
+
   .widgets {
     display: flex; 
     flex-direction: row; 
     gap: 40px; 
     justify-self: center;
+    position: relative; 
+    top: 300px; 
   }
 
   

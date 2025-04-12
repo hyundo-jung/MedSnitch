@@ -4,8 +4,8 @@
 }
 
 .circle {
-    width: 315.407px;
-    height: 315.407px;
+    width: 250px;
+    height: 250px;
     border-radius: 315.407px;
     border: 5px solid #FFF;
     color:  #3C3B3E;
@@ -29,7 +29,7 @@
 
 .circle-num {
     font-family: ropa; 
-    font-size: 125px;
+    font-size: 100px;
     margin: 0;
     margin-top: 10px;  
 }
@@ -37,7 +37,7 @@
 .circle-text {
     font-family: libre; 
     font-weight: 900; 
-    font-size: 45px;
-    line-height: 55px;
+    font-size: 35px;
+    line-height: 40px;
     margin-top: -5px; 
 }  

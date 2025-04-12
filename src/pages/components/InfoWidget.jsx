@@ -15,7 +15,7 @@ function InfoWidget({title, blurb, link}) {
             <>
                 <p className="widget-blurb">
                     {blurb}
-                    <a className="read-more" href={link}>
+                    <a className={`read-more ${isClicked ? 'clicked' : ''}`} href={link}>
                         Read more {'>'}
                     </a>
                 </p>
