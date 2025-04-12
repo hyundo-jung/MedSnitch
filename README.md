@@ -1,12 +1,3 @@
-# React + Vite
+# MedSnitch
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+A supervised learning system for detecting fraudulent medical billing practices such as phantom billing, unbundling, and duplicate claims. Designed for insurers and regulators, the project includes a frontend dashboard, RESTful API, and multiple classification models. The models are trained on real healthcare billing data from the National Institute of Allergy and Infectious Diseases.
