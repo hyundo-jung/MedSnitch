@@ -21,7 +21,10 @@ function HomePage() {
         <div className="landing">
           <div className="title">
               <h1 className="motto">Healthcare should not have hidden costs. </h1>
-              <h2 className="intro">MedSnitch detects fraudulent medical billing with a click of a button.  </h2>
+              <h2 className="intro">
+                <span className="highlight">MedSnitch</span> detects fraudulent medical billing with a click of a button.
+              </h2>
+
           </div>
           <div className="logo">
               <img src={logo}></img>

@@ -1,9 +1,11 @@
 // homepage infowidget 
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom';
 import '../styles/InfoWidget.css' 
 
 function InfoWidget({title, blurb, link}) {
     const [isClicked, setIsClicked] = useState(false); 
+    const navigate = useNavigate(); 
 
     return (
         <div className={`widget-container ${isClicked ? 'clicked' : ''}`}>
@@ -15,7 +17,7 @@ function InfoWidget({title, blurb, link}) {
             <>
                 <p className="widget-blurb">
                     {blurb}
-                    <a className={`read-more ${isClicked ? 'clicked' : ''}`} href={link}>
+                    <a className={`read-more ${isClicked ? 'clicked' : ''}`} onClick={() => navigate('/about-us')}>
                         Read more {'>'}
                     </a>
                 </p>
