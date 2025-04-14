@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Submit Medical Claim</title>
+</head>
+<body>
+    <h1>Medical Claim Submission</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <label>Claim Amount:</label><input name="claim_amount" type="number" step="0.01"><br>
+        <label>Claim Date:</label><input name="claim_date" type="date"><br>
+        <label>Procedure Code:</label><input name="procedure_code"><br>
+        <label>Patient Age:</label><input name="patient_age" type="number"><br>
+        <label>Patient Gender:</label><input name="patient_gender"><br>
+        <label>Provider Speciality:</label><input name="provider_speciality"><br>
+        <label>Claim Status:</label><input name="claim_status"><br>
+        <label>Patient Income:</label><input name="patient_income" type="number"><br>
+        <label>Patient Marital Status:</label><input name="patient_marital_status"><br>
+        <label>Patient Employment Status:</label><input name="patient_employment_status"><br>
+        <label>Claim Type:</label><input name="claim_type"><br>
+        <label>Submission Method:</label><input name="submission_method"><br>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
