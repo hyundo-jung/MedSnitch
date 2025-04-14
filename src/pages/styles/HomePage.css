@@ -111,31 +111,63 @@
     color: #3C3B3E; 
   }
 
-  .flowchart {
+  .flowchart-circles {
     position: relative; 
-    top: 80px; 
-    width: 1000px; 
-    height: 1000px; 
+    top: 130px; 
   }
 
   .flowchart-text {
     color: #FFF;
     font-family: libre; 
-    font-size: 35px;
+    font-size: 40px;
     font-style: normal;
     font-weight: 900;
     line-height: 45px;
-    width: 456px;
+    width: 430px;
     height: 149px;
     position: absolute; 
     left: 50%; 
     transform: translate(-50%); 
-    top: 400px; 
+    top: 380px; 
+    transition: font-size 0.25s ease; 
   }
 
-  .arrow {
-    stroke-width: 5px;
-    stroke: #FFF;
+  .flowchart-text:hover {
+    font-size: 43px;
+  }
+
+  .arrow1 {
+    position: relative; 
+    top: 105px; 
+    left: 435px; 
+  }
+
+  .arrow2 {
+    position: relative; 
+    top: 492px; 
+    left: 455px; 
+    
+  }
+
+  .arrow3 {
+    position: relative; 
+    top: 670px; 
+    left: 53px; 
+    
+  }
+
+  .arrow4 {
+    position: relative; 
+    top: 495px; 
+    right: 360px; 
+    
+  }
+
+  .arrow5 {
+    position: relative; 
+    top: 260px; 
+    right: 285px; 
+    
   }
 
   .learn-more {
@@ -143,6 +175,11 @@
     font-size: 29.25px;
     position: relative; 
     top: 250px; 
+  }
+
+  .learn-more-container {
+    position: relative; 
+    top: 750px; 
   }
 
   .widgets {
@@ -154,6 +191,25 @@
     top: 300px; 
   }
 
+  .lock {
+    position: absolute; 
+    top: 3000px; 
+    left: 50%; 
+    transform: translate(-50%); 
+    width: 100px; 
+    height: 100px
+  }
+
+
+  .footer {
+    text-align: center;
+    color: #FFF; 
+    font-family: mono;
+    font-size: 25px;
+    margin-top: 1750px;
+    padding-bottom: 100px; 
+  }
+  
   
   
   
