@@ -1,180 +1,302 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.model_selection import train_test_split
+from pathlib import Path
+from sklearn.preprocessing import StandardScaler
+import logging
+import joblib
 
-def load_data(file_path):
-    """Load data from Excel file"""
-    return pd.read_excel(file_path)
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
+class HealthcareDataPreprocessor:
+    def __init__(self, data_dir: str = "../../data"):
+        self.data_dir = Path(data_dir)
+        self.raw_dir = self.data_dir / "raw"
+        self.processed_dir = self.data_dir / "processed"
+        self.mappings_dir = self.data_dir / "mappings"
+        
+        # Create necessary directories
+        self.processed_dir.mkdir(exist_ok=True)
+        self.mappings_dir.mkdir(exist_ok=True)
+        
+        # Initialize scaler
+        self.scaler = StandardScaler()
 
-def encode_categorical_features(df, category_orders=None):
-    """Encode categorical features using custom ordered Label Encoding
-    
-    Args:
-        df: DataFrame to encode
-        category_orders: Dictionary mapping column names to ordered lists of categories
-                        Example: {'marital_status': ['single', 'married', 'divorced', 'widowed']}
-    """
-    categorical_cols = df.select_dtypes(include=['object']).columns
-    label_encoders = {}
-    
-    for col in categorical_cols:
-        if col in category_orders:
-            # Use custom ordering if specified
-            categories = category_orders[col]
-            # Create a mapping from category to desired number
-            category_map = {cat: idx for idx, cat in enumerate(categories)}
-            # Apply the mapping
-            df[col] = df[col].map(category_map)
-            # Create a LabelEncoder for consistency
-            label_encoders[col] = LabelEncoder()
-            label_encoders[col].classes_ = np.array(categories)
-        else:
-            # Use default LabelEncoder if no custom order specified
-            label_encoders[col] = LabelEncoder()
-            df[col] = label_encoders[col].fit_transform(df[col])
-    
-    return df, label_encoders
+    def process_diagnosis_codes(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Process diagnosis codes into CCS categories"""
+        df = df.copy()
+        
+        # Count number of non-empty and non-NA diagnoses per claim using vectorized operations
+        diagnosis_columns = [f'ClmDiagnosisCode_{i}' for i in range(1, 11)]
+        df['num_diagnoses'] = (~df[diagnosis_columns].isna() & (df[diagnosis_columns] != 'NA')).sum(axis=1)
+        
+        # Keep the first diagnosis code
+        df['first_diagnosis'] = df['ClmDiagnosisCode_1']
+        
+        # Load the mapping file
+        mapping_df = pd.read_csv(self.mappings_dir / "$dxref 2015.csv", skiprows=1)
+        
+        # Clean up the data - the column names are wrapped in single quotes
+        mapping_df["'ICD-9-CM CODE'"] = mapping_df["'ICD-9-CM CODE'"].str.strip("'")
+        mapping_df["'CCS CATEGORY'"] = mapping_df["'CCS CATEGORY'"].str.strip("'").str.strip()
+        
+        # Create a mapping dictionary from ICD-9 code to CCS category
+        dx_to_category = dict(zip(
+            mapping_df["'ICD-9-CM CODE'"],
+            mapping_df["'CCS CATEGORY'"].astype(int)
+        ))
+        
+        # Map the first diagnosis code to its category
+        df['DiagnosisCategory'] = df['first_diagnosis'].map(dx_to_category)
+        df['DiagnosisCategory'] = df['DiagnosisCategory'].fillna(-1)  # -1 for unknown categories
+        
+        # Drop original diagnosis code columns
+        df = df.drop(columns=diagnosis_columns)
+        
+        return df
 
-def scale_numerical_features(df, target_column=None, categorical_cols=None):
-    """Scale numerical features using StandardScaler
-    
-    Args:
-        df: DataFrame to scale
-        target_column: Name of the target column to exclude from scaling
-        categorical_cols: List of categorical columns to exclude from scaling
-    """
-    # Get numerical columns excluding the target and categorical columns
-    numerical_cols = df.select_dtypes(include=[np.number]).columns
-    if target_column and target_column in numerical_cols:
-        numerical_cols = numerical_cols.drop(target_column)
-    if categorical_cols:
-        numerical_cols = numerical_cols.difference(categorical_cols)
-    
-    scaler = StandardScaler()
-    df[numerical_cols] = scaler.fit_transform(df[numerical_cols])
-    return df, scaler
+    def process_procedure_codes(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Process procedure codes, counting non-empty and non-NA codes per claim"""
+        df = df.copy()
+        
+        # Count number of non-empty and non-NA procedures per claim using vectorized operations
+        procedure_columns = [f'ClmProcedureCode_{i}' for i in range(1, 7)]
+        df['num_procedures'] = (~df[procedure_columns].isna() & (df[procedure_columns] != 'NA')).sum(axis=1)
+        
+        # Keep the first procedure code
+        df['first_procedure'] = df['ClmProcedureCode_1']
+        
+        # Drop original procedure code columns
+        df = df.drop(columns=procedure_columns)
+        
+        return df
 
-def split_data(df, target_column, test_size=0.2, val_size=0.2, random_state=42):
-    """Split data into train, validation, and test sets"""
-    # First split to separate out the test set
-    train_val, test = train_test_split(
-        df, test_size=test_size, random_state=random_state
-    )
-    
-    # Then split the remaining data into train and validation
-    train, val = train_test_split(
-        train_val, test_size=val_size/(1-test_size), random_state=random_state
-    )
-    
-    # Separate features and target
-    X_train = train.drop(columns=[target_column])
-    y_train = train[target_column]
-    
-    X_val = val.drop(columns=[target_column])
-    y_val = val[target_column]
-    
-    X_test = test.drop(columns=[target_column])
-    y_test = test[target_column]
-    
-    return X_train, X_val, X_test, y_train, y_val, y_test
+    def process_claim_dates(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Process claim dates into day of year, weekend indicator, and claim duration"""
+        df = df.copy()
+        
+        # Convert to datetime
+        df['ClaimStartDt'] = pd.to_datetime(df['ClaimStartDt'])
+        df['ClaimEndDt'] = pd.to_datetime(df['ClaimEndDt'])
+        
+        # Add day of year (1-365/366)
+        df['ClaimDayOfYear'] = df['ClaimStartDt'].dt.dayofyear
+        
+        # Add weekend indicator (1 for weekend, 0 for weekday)
+        df['isWeekend'] = df['ClaimStartDt'].dt.dayofweek.isin([5, 6]).astype(int)
+        
+        # Add claim duration in days
+        df['ClaimDuration'] = (df['ClaimEndDt'] - df['ClaimStartDt']).dt.days
+        
+        # Drop original date columns
+        df = df.drop(columns=['ClaimStartDt', 'ClaimEndDt'])
+        
+        return df
 
-def process_date_columns(df):
-    """Process date columns into numeric features"""
-    # Convert to datetime
-    df["ClaimDate"] = pd.to_datetime(df["ClaimDate"])
-    
-    # Create new columns
-    # 1. Day of week (0-6, where 0 is Monday)
-    df["ClaimDate_day_of_week"] = df["ClaimDate"].dt.dayofweek
-    # 2. Year
-    df["ClaimDate_year"] = df["ClaimDate"].dt.year
-    # 3. Day of year (1-365/366)
-    df["ClaimDate_day_of_year"] = df["ClaimDate"].dt.dayofyear
+    def enrich_with_beneficiary(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Enrich claims with beneficiary details"""
+        # Load beneficiary data
+        beneficiary_df = pd.read_csv(self.raw_dir / "beneficiary.csv")
+        
+        # Convert DOB to datetime
+        beneficiary_df['DOB'] = pd.to_datetime(beneficiary_df['DOB'])
+        
+        # Merge with claims data
+        df = df.merge(
+            beneficiary_df[['BeneID', 'Gender', 'Race', 'DOB']],
+            on='BeneID',
+            how='left'
+        )
+        
+        # Calculate age at time of claim
+        df['Age'] = (
+            pd.to_datetime(df['ClaimStartDt']).dt.year - 
+            df['DOB'].dt.year
+        )
+        
+        # Drop DOB as we don't need it anymore
+        df = df.drop(columns=['DOB'])
+        
+        return df
 
-    # Drop original date column
-    df = df.drop(columns=["ClaimDate"])
+    def calculate_total_cost(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Calculate total cost from reimbursement and deductible amounts"""
+        df = df.copy()
+        
+        # Fill any missing values with 0
+        df['InscClaimAmtReimbursed'] = df['InscClaimAmtReimbursed'].fillna(0)
+        df['DeductibleAmtPaid'] = df['DeductibleAmtPaid'].fillna(0)
+        
+        # Calculate total cost
+        df['cost'] = df['InscClaimAmtReimbursed'] + df['DeductibleAmtPaid']
+        
+        # Drop original columns
+        df = df.drop(columns=['InscClaimAmtReimbursed', 'DeductibleAmtPaid'])
+        
+        return df
+
+    def process_fraud_labels(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Add fraud labels based on provider fraud status"""
+        df = df.copy()
+        
+        # Load fraud labels
+        labels_df = pd.read_csv(self.raw_dir / "labels.csv")
+        
+        # Create a set of fraudulent providers for faster lookup
+        fraudulent_providers = set(labels_df[labels_df['PotentialFraud'] == 'Yes']['Provider'])
+        
+        # Add fraud label column
+        df['is_fraudulent'] = df['Provider'].isin(fraudulent_providers).astype(int)
+        
+        # Calculate target number of fraudulent claims for 10% ratio
+        total_claims = len(df)
+        target_fraudulent = int(total_claims * 0.1)  # 10% of total claims
+        
+        # Get indices of fraudulent claims
+        fraudulent_indices = df[df['is_fraudulent'] == 1].index
+        
+        # If we have more fraudulent claims than needed, sample them
+        if len(fraudulent_indices) > target_fraudulent:
+            # Calculate how many to remove
+            to_remove = len(fraudulent_indices) - target_fraudulent
             
-    return df
+            # Randomly select claims to remove
+            remove_indices = np.random.choice(
+                fraudulent_indices, 
+                size=to_remove, 
+                replace=False
+            )
+            
+            # Remove the selected claims
+            df = df.drop(remove_indices)
+        
+        return df
 
-def preprocess_data(file_path, target_column, category_orders, columns_to_drop):
-    """Main preprocessing function
+    def scale_numerical_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Scale all numerical columns using StandardScaler"""
+        df = df.copy()
+        
+        # Identify numerical columns (excluding is_fraudulent as it's our target)
+        numerical_cols = df.select_dtypes(include=['int64', 'float64']).columns
+        numerical_cols = [col for col in numerical_cols if col != 'is_fraudulent']
+        
+        # Scale numerical columns
+        df[numerical_cols] = self.scaler.fit_transform(df[numerical_cols])
+        
+        return df
+
+    def combine_claims(self, inpatient_df: pd.DataFrame, outpatient_df: pd.DataFrame) -> pd.DataFrame:
+        """Combine inpatient and outpatient claims with claim type indicator and stay duration"""
+        # Define columns to keep
+        columns_to_keep = [
+            'BeneID', 'ClaimID', 'ClaimStartDt', 'ClaimEndDt', 'Provider',
+            'InscClaimAmtReimbursed', 'DeductibleAmtPaid'
+        ]
+        # Add all diagnosis code columns
+        diagnosis_columns = [f'ClmDiagnosisCode_{i}' for i in range(1, 11)]
+        columns_to_keep.extend(diagnosis_columns)
+        # Add procedure code columns
+        procedure_columns = [f'ClmProcedureCode_{i}' for i in range(1, 7)]
+        columns_to_keep.extend(procedure_columns)
+        
+        # Add claim type column
+        inpatient_df['claimType'] = 'inpatient'
+        outpatient_df['claimType'] = 'outpatient'
+        
+        # Calculate stay duration for inpatient
+        inpatient_df['StayDuration'] = (
+            pd.to_datetime(inpatient_df['DischargeDt']) - 
+            pd.to_datetime(inpatient_df['AdmissionDt'])
+        ).dt.days
+        # Set stay duration to 0 for outpatient
+        outpatient_df['StayDuration'] = 0
+        
+        # Add new columns to keep list
+        columns_to_keep.extend(['claimType', 'StayDuration'])
+        
+        # Select only the specified columns
+        inpatient_df = inpatient_df[columns_to_keep]
+        outpatient_df = outpatient_df[columns_to_keep]
+        
+        # Calculate target number of outpatient claims for 90/10 ratio
+        target_outpatient = int(len(inpatient_df) * 9)  # 9 outpatient for every 1 inpatient
+        
+        # If we have more outpatient claims than needed, sample them
+        if len(outpatient_df) > target_outpatient:
+            outpatient_df = outpatient_df.sample(n=target_outpatient, random_state=42)
+        
+        # Combine the dataframes
+        combined_df = pd.concat([inpatient_df, outpatient_df], ignore_index=True)
+        
+        # Calculate total cost
+        combined_df = self.calculate_total_cost(combined_df)
+        
+        # Process diagnosis codes
+        combined_df = self.process_diagnosis_codes(combined_df)
+        
+        # Process procedure codes
+        combined_df = self.process_procedure_codes(combined_df)
+        
+        # Add fraud labels
+        combined_df = self.process_fraud_labels(combined_df)
+        
+        # Enrich with beneficiary details
+        combined_df = self.enrich_with_beneficiary(combined_df)
+        
+        # Process dates on the combined dataframe
+        combined_df = self.process_claim_dates(combined_df)
+        
+        # Encode claim type
+        combined_df['claimType'] = combined_df['claimType'].map({'inpatient': 0, 'outpatient': 1})
+        
+        # Remove ID columns
+        combined_df = combined_df.drop(columns=['BeneID', 'ClaimID', 'Provider'])
+        
+        # Scale numerical columns
+        combined_df = self.scale_numerical_columns(combined_df)
+        
+        # Ensure is_fraudulent is the last column
+        cols = combined_df.columns.tolist()
+        cols.remove('is_fraudulent')
+        cols.append('is_fraudulent')
+        combined_df = combined_df[cols]
+        
+        return combined_df
+
+    def preprocess(self) -> None:
+        """Main preprocessing function - currently only combining claims"""
+        try:
+            # Load only the necessary data
+            logger.info("Loading inpatient and outpatient data...")
+            inpatient_df = pd.read_csv(self.raw_dir / "inpatient.csv")
+            outpatient_df = pd.read_csv(self.raw_dir / "outpatient.csv")
+            
+            # Combine claims
+            logger.info("Combining claims...")
+            claims_df = self.combine_claims(inpatient_df, outpatient_df)
+            
+            # Save processed data
+            logger.info("Saving processed data...")
+            claims_df.to_csv(self.processed_dir / "processed_claims.csv", index=False)
+            
+            # Save the scaler
+            logger.info("Saving scaler...")
+            joblib.dump(self.scaler, self.processed_dir / "scaler.joblib")
+            
+            logger.info("Preprocessing completed successfully!")
+            
+        except Exception as e:
+            logger.error(f"Error during preprocessing: {str(e)}")
+            raise
+
+def preprocess(data_dir: str = "../../data") -> None:
+    """Main preprocessing function that combines and processes claims data"""
+    # Initialize preprocessor
+    preprocessor = HealthcareDataPreprocessor(data_dir)
     
-    Args:
-        file_path: Path to the data file
-        target_column: Name of the target column
-        category_orders: Dictionary mapping column names to ordered lists of categories
-        columns_to_drop: List of column names to remove from the dataset
-    """
-    # Load data
-    print("Loading data...")
-    df = load_data(file_path)
-    
-    # Drop specified columns
-    print(f"Dropping columns: {columns_to_drop}")
-    df = df.drop(columns=columns_to_drop, errors='ignore')
-    
-    # Process date columns
-    df = process_date_columns(df)
-    
-    # Encode categorical features
-    print("Encoding categorical features...")
-    df, label_encoders = encode_categorical_features(df, category_orders)
-    
-    # Get list of categorical columns (including binary ones)
-    categorical_cols = list(category_orders.keys())
-    
-    # Scale numerical features (excluding target and categorical columns)
-    print("Scaling numerical features...")
-    df, scaler = scale_numerical_features(df, target_column, categorical_cols)
-    
-    # Split data
-    print("Splitting data into train, validation, and test sets...")
-    X_train, X_val, X_test, y_train, y_val, y_test = split_data(
-        df, target_column
-    )
-    
-    # Save processed data
-    print("Saving processed data...")
-    processed_dir = '../../data/processed'
-    
-    X_train.to_csv(f'{processed_dir}/X_train.csv', index=False)
-    X_val.to_csv(f'{processed_dir}/X_val.csv', index=False)
-    X_test.to_csv(f'{processed_dir}/X_test.csv', index=False)
-    y_train.to_csv(f'{processed_dir}/y_train.csv', index=False)
-    y_val.to_csv(f'{processed_dir}/y_val.csv', index=False)
-    y_test.to_csv(f'{processed_dir}/y_test.csv', index=False)
-    
-    # Save preprocessing objects
-    import joblib
-    joblib.dump(label_encoders, f'{processed_dir}/label_encoders.joblib')
-    joblib.dump(scaler, f'{processed_dir}/scaler.joblib')
-    
-    print("Preprocessing completed successfully!")
-    return X_train, X_val, X_test, y_train, y_val, y_test
+    # Run preprocessing
+    preprocessor.preprocess()
 
 if __name__ == "__main__":
-    file_path = "../../data/raw_data.xlsx"
-    target_column = "ClaimLegitimacy"
-    
-    # Define custom ordering for categorical columns
-    category_orders = {
-        'PatientGender': ['F', 'M'],
-        'ClaimStatus': ['Pending', 'Denied', 'Approved'],
-        'PatientMaritalStatus': ['Widowed', 'Divorced', 'Single', 'Married'],
-        'PatientEmploymentStatus': ['Student', 'Unemployed', 'Retired', 'Employed'],
-        'ClaimType': ['Emergency', 'Inpatient', 'Outpatient', 'Routine'],
-        'ClaimSubmissionMethod': ['Phone', 'Paper', 'Online']
-    }
-    
-    # Specify columns to remove
-    columns_to_drop = [
-        'ClaimID',
-        'PatientID',
-        'ProviderID',
-        'ProviderLocation',
-        'Cluster'
-    ]
-
-    preprocess_data(file_path, target_column, category_orders, columns_to_drop)
+    preprocess()
