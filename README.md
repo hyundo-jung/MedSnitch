@@ -5,19 +5,15 @@ A supervised learning system for detecting fraudulent medical billing practices 
 ## Data Preprocessing
 
 1. **Download Data**
-   ```bash
    cd src/data
    python download_data.py  # Downloads raw data to data/raw/
-   ```
 
 2. **Get CCS Mapping**
    - Download "Single Level CCS" from [HCUP CCS Tools](https://hcup-us.ahrq.gov/toolssoftware/ccs/ccs.jsp)
    - Move `$dxref 2015.csv` to `data/mappings/`
 
 3. **Run Preprocessor**
-   ```bash
    python preprocess.py
-   ```
 
 The preprocessor:
 - Combines inpatient/outpatient claims
