@@ -114,3 +114,5 @@ for i in range(len(preds)):
     if preds[i] == test_labels[i]:
         correct += 1
 print(f"Accuracy: {correct / len(preds)}")
+
+bst.save_model('xg.json')
