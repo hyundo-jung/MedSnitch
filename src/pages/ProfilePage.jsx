@@ -13,7 +13,7 @@ function ProfilePage() {
 
     const handleClaimClick = (claimID) => setActiveClaim(claimID); 
     const handleUploadClick = () => {
-        window.location.href = 'http://localhost:5174/submit/';
+        window.location.href = 'http://localhost:8000/claims/submit/';
     };
 
     return (
