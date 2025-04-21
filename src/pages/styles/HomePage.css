@@ -200,6 +200,13 @@
     height: 100px
   }
 
+  .contact {
+    position: absolute; 
+    top: 3100px; 
+    left: 50%; 
+    transform: translate(-50%); 
+  }
+
 
   .footer {
     text-align: center;
@@ -210,6 +217,6 @@
     padding-bottom: 100px; 
   }
   
-  
+  /* make this not relative to te widget */
   
   

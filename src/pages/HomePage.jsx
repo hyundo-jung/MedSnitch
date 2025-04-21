@@ -2,7 +2,6 @@ import { useState } from 'react'
 import logo from '../assets/Logo.png'
 import arrow from '../assets/arrow-down.png'
 import './styles/HomePage.css'
-import flowchart from '../assets/flowchart.png'
 import InfoWidget from './components/InfoWidget'
 import Circle from './components/Circle'
 import arrow1 from '../assets/arrow1.png'
@@ -80,7 +79,7 @@ function HomePage() {
         </div>
         <div className="footer">
           <img src={lock} className="lock"></img>
-          <p>Contact Us: email/number</p>
+          <p className="contact">Contact Us: email/number</p>
         </div>
 
         

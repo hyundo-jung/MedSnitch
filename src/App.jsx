@@ -6,6 +6,7 @@ import arrow from './assets/arrow-down.png'
 import './App.css'
 import HomePage from './pages/HomePage'
 import AboutUs from './pages/info pages/AboutUs'
+import ProfilePage from './pages/ProfilePage'
 
 function App() {
   
@@ -14,6 +15,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage/>} />
         <Route path="/about-us" element={<AboutUs />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </Router>
   )
