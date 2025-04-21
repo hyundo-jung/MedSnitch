@@ -16,11 +16,16 @@ import lock from '../assets/lock.png'
 function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
-  const data = {
-    title: "What is this data?", 
-    blurb: "lalalalalaalalal",
-    link: "https://www.google.com/", 
-  }; 
+  const data = [
+    {title: "What is Medical Bill Fraud?", 
+    blurb: "bill fraud blurb",
+    link: "https://www.google.com/"}, 
+    {title: "Training Data Overview", 
+    blurb: "source, summary",
+    link: "https://www.google.com/"},
+    {title: "Meet the Team", 
+    blurb: "IEEE intro",
+    link: "https://www.google.com/"}]; 
   
   return (
     <>
@@ -72,9 +77,9 @@ function HomePage() {
           <p className="learn-more">Learn More</p>
           <hr className="learn-more" style={{width: "25%"}}/>
           <div className="widgets">
-              <InfoWidget {...data}/>
-              <InfoWidget {...data}/>
-              <InfoWidget {...data}/>
+              <InfoWidget {...data[0]}/>
+              <InfoWidget {...data[1]}/>
+              <InfoWidget {...data[2]}/>
           </div>
         </div>
         <div className="footer">
