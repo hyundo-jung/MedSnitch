@@ -1,13 +1,13 @@
-from django.db import models
 import torch
 from torch import nn
 import torch.optim as optim
 import pandas as pd
 import xgboost
 from xgboost import XGBClassifier
+import os
 
 # Data for both models
-dataset = pd.read_csv("processed_claims.csv")
+dataset = pd.read_csv("data/processed/processed_claims.csv")
 shuffled_dataset = dataset.sample(frac=1, random_state=42).reset_index(drop=True)
 
 class CustomDataset(torch.utils.data.Dataset):
