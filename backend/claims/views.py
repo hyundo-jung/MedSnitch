@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from .models import MedicalClaim
 import numpy as np
 import pandas as pd
@@ -72,13 +72,22 @@ def submit_claim_data(request):
         raw_xgb_output = xgb_probabilities[1]
 
         
-
-        return render(request, 'claims/submit_success.html', {
-            'claim_id': claim.id,
-            'nn_prediction': f"{raw_nn_output:.4f} ({'Fraudulent' if nn_result else 'Legitimate'})",
-            'xgb_prediction': f"{raw_xgb_output:.4f} ({'Fraudulent' if xgb_result else 'Legitimate'})"
-        })
-
+        response_data = {
+            'nn_prediction': raw_nn_output,
+            'xgb_prediction': raw_xgb_output,
+            'nn_label': 'Fraudulent' if raw_nn_output > 0.5 else 'Legitimate',
+            'xgb_label': 'Fraudulent' if raw_xgb_output > 0.5 else 'Legitimate',
+        }
+        return JsonResponse(response_data)
     else:
-        # Render a form for GET request
-        return render(request, 'claims/submit_claim.html')
+        return JsonResponse({'error': 'Only POST method allowed'}, status=400)
+
+    #     return render(request, 'claims/submit_success.html', {
+    #         'claim_id': claim.id,
+    #         'nn_prediction': f"{raw_nn_output:.4f} ({'Fraudulent' if nn_result else 'Legitimate'})",
+    #         'xgb_prediction': f"{raw_xgb_output:.4f} ({'Fraudulent' if xgb_result else 'Legitimate'})"
+    #     })
+
+    # else:
+    #     # Render a form for GET request
+    #     return render(request, 'claims/submit_claim.html')
