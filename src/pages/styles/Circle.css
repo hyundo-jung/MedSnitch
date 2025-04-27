@@ -1,0 +1,51 @@
+@font-face {
+    font-family: 'ropa'; 
+    src: url('src/assets/RopaSans-Regular.ttf'); 
+}
+
+.circle {
+    width: 275px;
+    height: 275px;
+    border-radius: 315.407px;
+    border: 5px solid #FFF;
+    color:  #3C3B3E;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    box-sizing: border-box; 
+    padding: 0px 15px;
+    transition: width 0.25s ease, height 0.25s ease; 
+}
+
+.circle:hover {
+    width: 295px;
+    height: 295px;
+}
+
+.circle.green {
+    background-color: #B6FFDA;
+}
+
+.circle.purple {
+    background-color: #E4BEF7;
+}
+
+.circle.blue {
+    background-color: #BEDAF7;
+}
+
+.circle-num {
+    font-family: ropa; 
+    font-size: 120px;
+    margin: 0;
+    margin-top: 10px;  
+}
+
+.circle-text {
+    font-family: libre; 
+    font-weight: 900; 
+    font-size: 40px;
+    line-height: 40px;
+    margin-top: -10px;  
+    width: 230px; 
+}  

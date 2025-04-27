@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Submit Medical Claim</title>
+</head>
+<body>
+    <h1>Medical Claim Submission</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <label>Claim Type:</label><input name="claimType" type="number" step="1"><br>
+
+        <label>Stay Duration:</label><input name="StayDuration" type="number" step="0.01" required><br>
+
+        <label>Cost:</label><input name="cost" step="0.01"><br>
+
+        <label>Number of Diagnoses:</label><input name="num_diagnoses" type="number" step="1"><br>
+
+        <label>Diagnosis Category:</label><input name="DiagnosisCategory"><br>
+
+        <label>Number of Procedures:</label><input name="num_procedures"><br>
+
+        <label>First Procedure:</label><input name="first_procedure" type="number"><br>
+
+        <label>Gender:</label><select name="Gender">
+            <option value="0">Other</option>
+            <option value="1">Male</option>
+            <option value="2">Female</option>
+        </select><br>
+
+        <label>Race:</label><select name="Race">
+            <option value="0">Declined to Answer</option>
+            <option value="1">White</option>
+            <option value="2">Black or African American</option>
+            <option value="3">Other</option>
+            <option value="4">Asian / Pacific Islander</option>
+            <option value="5">Hispanic</option>
+            <option value="6">North American Native</option>
+        </select><br>
+
+        <label>Is Weekend:</label><select name="isWeekend">
+            <option value="0">No</option>
+            <option value="1">Yes</option>
+        </select><br>
+
+
+        <label>Claim Duration:</label><input name="ClaimDuration" type="number" step="0.01"><br>
+
+        <label>Claim Date:</label><input name="ClaimDate" type="date"><br>
+
+        <label>Age:</label><input name="Age" type="number" step="1"><br>
+
+        <label>First Diagnosis:</label><input name="first_diagnosis" type="number" step="1"><br>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

@@ -1,12 +1,34 @@
-# React + Vite
+# MedSnitch
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A supervised learning system for detecting fraudulent medical billing practices such as phantom billing, unbundling, and duplicate claims. Designed for insurers and regulators, the project includes a frontend dashboard, RESTful API, and multiple classification models. The models are trained on real healthcare billing data from the National Institute of Allergy and Infectious Diseases.
 
-Currently, two official plugins are available:
+## Data Preprocessing
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. **Download Data**
+   cd src/data
+   python download_data.py  # Downloads raw data to data/raw/
 
-## Expanding the ESLint configuration
+2. **Get CCS Mapping**
+   - Download "Single Level CCS" from [HCUP CCS Tools](https://hcup-us.ahrq.gov/toolssoftware/ccs/ccs.jsp)
+   - Move `$dxref 2015.csv` to `data/mappings/`
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+3. **Run Preprocessor**
+   python preprocess.py
+
+The preprocessor:
+- Combines inpatient/outpatient claims
+- Processes diagnosis/procedure codes (keeps first code + counts)
+- Converts dates to features
+- Adds beneficiary details
+- Calculates costs
+- Adds fraud labels
+- Scales features
+- Removes IDs
+
+Output: `data/processed/processed_claims.csv` and `data/processed/scaler.joblib`
+
+To use the scaler in your model:
+```python
+import joblib
+scaler = joblib.load('data/processed/scaler.joblib')
+```
