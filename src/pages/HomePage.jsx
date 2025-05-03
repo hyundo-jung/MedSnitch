@@ -11,10 +11,21 @@ import arrow4 from '../assets/arrow4.png'
 import arrow5 from '../assets/arrow5.png'
 import lock from '../assets/lock.png'
 
+import LoginPage from './LoginPage';
+import SignupPage from './SignupPage';
 
 
 function HomePage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
+
+  const openLogin = () => setShowLogin(true);
+  const openSignup = () => setShowSignup(true);
+
+  const closeLogin = () => setShowLogin(false);
+  const closeSignup = () => setShowSignup(false);
+ 
 
   const data = [
     {title: "What is Medical Bill Fraud?", 
@@ -48,13 +59,15 @@ function HomePage() {
         </div>
 
         <div className="buttons">
-          <button className="login-button" onClick={() => setIsLoggedIn((isLoggedIn) => !isLoggedIn)}>
+          <button className="login-button" onClick={openLogin}>
             Log in 
           </button>
-          <button className="login-button" onClick={() => setIsLoggedIn((isLoggedIn) => !isLoggedIn)}>
+          <button className="login-button" onClick={openSignup}>
             Sign Up 
           </button>
         </div>
+        {showLogin && <LoginPage onClose={closeLogin} />}
+        {showSignup && <SignupPage onClose={closeSignup} />}
 
         <div className="flowchart-circles">
           <Circle num="1" color="#B6FFDA" text="Log In" top="60px" left="50%" /> 
@@ -90,8 +103,9 @@ function HomePage() {
         
        {/* <p style={{fontFamily:"mono", fontSize: "25px", position: "absolute", left: "50%", transform: "translate(-50%)", top: "3100px"}}>Contact Us: email/number</p>
          */}
-    </>
-  )
-}
+
+        </>
+      )
+    }
 
 export default HomePage
