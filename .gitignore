@@ -7,6 +7,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+__pycache__/
+
 node_modules
 dist
 dist-ssr
@@ -22,13 +24,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# Ignore contents of these folders
-# data/raw/*
-# data/processed/*
-# data/mappings/*
-
-# !data/raw/.gitkeep
-# !data/processed/.gitkeep
-# !data/processed/processed_claims.csv
-# !data/mappings/.gitkeep

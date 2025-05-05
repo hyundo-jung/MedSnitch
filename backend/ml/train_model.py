@@ -8,6 +8,8 @@ import os
 import numpy as np
 import joblib
 import test_ml_model
+from sklearn.metrics import precision_score, recall_score, f1_score
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -18,18 +20,13 @@ dataset = pd.read_csv(os.path.join(BASE_DIR, "data/processed/processed_claims.cs
 
 dataset["first_procedure"] = dataset["first_procedure"].fillna(0)
 dataset["first_diagnosis"] = dataset["first_diagnosis"].astype("category").cat.codes
-# print(dataset.dtypes)
 
-# print(scaler.feature_names_in_)
-
-# print(dataset["ClaimDayOfYear"])
-
-feature_columns = ['claimType', 'StayDuration', 'cost', 'num_diagnoses', 'DiagnosisCategory', 'num_procedures', 'first_procedure', 'Gender', 'Race', 'isWeekend', 'ClaimDuration']
+feature_columns = ['claimType', 'StayDuration', 'cost', 'num_diagnoses', 'DiagnosisCategory', 'num_procedures', 'first_procedure', 'Gender', 'Race', 'ClaimDay_sin', 'ClaimDay_cos', 'ClaimDuration']
 features = dataset[feature_columns]
 features_scaled = scaler.transform(features)
 
 scaled_dataset = pd.DataFrame(features_scaled, columns=features.columns)
-scaled_dataset["ClaimDayOfYear"] = dataset["ClaimDayOfYear"]
+scaled_dataset["isWeekend"] = dataset["isWeekend"]
 scaled_dataset["Age"] = dataset["Age"]
 scaled_dataset["first_diagnosis"] = dataset["first_diagnosis"]
 scaled_dataset["is_fraudulent"] = dataset["is_fraudulent"]
@@ -83,7 +80,7 @@ proportions = test_labels.value_counts(normalize=True)  # relative frequency
 print("Counts:\n", counts)
 print("\nProportions:\n", proportions)
 
-def train_nn_model(epochs=20):
+def train_nn_model(epochs=5):
     neural_network = test_ml_model.Model()
     optimizer = optim.Adam(neural_network.parameters(), lr=1e-4, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer)
@@ -136,19 +133,30 @@ if __name__ == "__main__":
 
     correct = 0
     total = 0
+    all_preds = []
+    all_labels = []
+
     with torch.no_grad():
         for i, data in enumerate(test_loader):
             inputs, labels = data
             outputs = new_nn(inputs)
-            loss = criterion(outputs, labels.unsqueeze(1))
-            test_loss += loss.item()
 
             probs = torch.sigmoid(outputs)
             preds = (probs > 0.5).float().squeeze(1)
             correct += (preds == labels).sum().item()
             total += labels.size(0)
-        print(f"Test Loss: {test_loss / len(test_tensor)}")
-        print(f"NN Test Accuracy: {correct/total}")
+            all_preds.extend(preds.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
+    
+    precision = precision_score(all_labels, all_preds)
+    recall = recall_score(all_labels, all_preds)
+    f1 = f1_score(all_labels, all_preds)
+
+    print("\nNN Model Results:")
+    print(f"Test Accuracy: {correct/total}")
+    print(f"Precision: {precision}")
+    print(f"Recall: {recall}")
+    print(f"F1 Score: {f1}")
 
     torch.save(new_nn.state_dict(), os.path.join(BASE_DIR, "model.pth"))
 
@@ -158,11 +166,22 @@ if __name__ == "__main__":
     bst = train_xgb_model()
     preds = bst.predict(test_params)
 
-    correct = 0
-    for i in range(len(preds)):
-        if preds[i] == test_labels[i]:
-            correct += 1
-    print(f"XGBoost Accuracy: {correct / len(preds)}")
+    
+    # Convert test labels to numpy array if needed
+    true_labels = test_labels.to_numpy() if hasattr(test_labels, "to_numpy") else test_labels
+
+    # Accuracy
+    accuracy = (preds == true_labels).mean()
+    print(f"XGBoost Accuracy: {accuracy:.4f}")
+
+    # Precision, Recall, F1
+    precision = precision_score(true_labels, preds, zero_division=0)
+    recall = recall_score(true_labels, preds, zero_division=0)
+    f1 = f1_score(true_labels, preds, zero_division=0)
+
+    print(f"Precision: {precision:.4f}")
+    print(f"Recall:    {recall:.4f}")
+    print(f"F1 Score:  {f1:.4f}")
 
     unique_vals, counts = np.unique(preds, return_counts=True)
     print("XGBoost Prediction Distribution:")

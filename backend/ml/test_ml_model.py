@@ -13,7 +13,7 @@ class Model(nn.Module):
     def __init__(self):
         super().__init__()
         self.layers = nn.Sequential(
-            nn.Linear(14, 256),
+            nn.Linear(15, 256),
             nn.ReLU(),
             nn.Linear(256, 128),
             nn.ReLU(),

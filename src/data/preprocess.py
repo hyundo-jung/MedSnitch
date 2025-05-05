@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class HealthcareDataPreprocessor:
-    def __init__(self, data_dir: str = "../../data"):
+    def __init__(self, data_dir: str = "../../../../backend/data"):
         self.data_dir = Path(data_dir)
         self.raw_dir = self.data_dir / "raw"
         self.processed_dir = self.data_dir / "processed"
@@ -79,9 +79,11 @@ class HealthcareDataPreprocessor:
         # Convert to datetime
         df['ClaimStartDt'] = pd.to_datetime(df['ClaimStartDt'])
         df['ClaimEndDt'] = pd.to_datetime(df['ClaimEndDt'])
-        
-        # Add day of year (1-365/366)
         df['ClaimDayOfYear'] = df['ClaimStartDt'].dt.dayofyear
+        
+        # Add day of year (use sin and cos to encode cyclic nature)
+        df["ClaimDay_sin"] = np.sin(2 * np.pi * df["ClaimDayOfYear"] / 365)
+        df["ClaimDay_cos"] = np.cos(2 * np.pi * df["ClaimDayOfYear"] / 365)
         
         # Add weekend indicator (1 for weekend, 0 for weekday)
         df['isWeekend'] = df['ClaimStartDt'].dt.dayofweek.isin([5, 6]).astype(int)
@@ -90,7 +92,7 @@ class HealthcareDataPreprocessor:
         df['ClaimDuration'] = (df['ClaimEndDt'] - df['ClaimStartDt']).dt.days
         
         # Drop original date columns
-        df = df.drop(columns=['ClaimStartDt', 'ClaimEndDt'])
+        df = df.drop(columns=['ClaimStartDt', 'ClaimEndDt', 'ClaimDayOfYear'])
         
         return df
 
@@ -148,29 +150,7 @@ class HealthcareDataPreprocessor:
         
         # Add fraud label column
         df['is_fraudulent'] = df['Provider'].isin(fraudulent_providers).astype(int)
-        
-        # Calculate target number of fraudulent claims for 10% ratio
-        total_claims = len(df)
-        target_fraudulent = int(total_claims * 0.1)  # 10% of total claims
-        
-        # Get indices of fraudulent claims
-        fraudulent_indices = df[df['is_fraudulent'] == 1].index
-        
-        # If we have more fraudulent claims than needed, sample them
-        if len(fraudulent_indices) > target_fraudulent:
-            # Calculate how many to remove
-            to_remove = len(fraudulent_indices) - target_fraudulent
-            
-            # Randomly select claims to remove
-            remove_indices = np.random.choice(
-                fraudulent_indices, 
-                size=to_remove, 
-                replace=False
-            )
-            
-            # Remove the selected claims
-            df = df.drop(remove_indices)
-        
+
         return df
 
     def scale_numerical_columns(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -290,7 +270,7 @@ class HealthcareDataPreprocessor:
             logger.error(f"Error during preprocessing: {str(e)}")
             raise
 
-def preprocess(data_dir: str = "../../data") -> None:
+def preprocess(data_dir: str = "../../backend/data") -> None:
     """Main preprocessing function that combines and processes claims data"""
     # Initialize preprocessor
     preprocessor = HealthcareDataPreprocessor(data_dir)
