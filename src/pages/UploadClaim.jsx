@@ -28,7 +28,7 @@ function UploadClaim() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8000/api/submit-claim/', {
+      const response = await fetch('http://localhost:8000/api/claims/submit/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

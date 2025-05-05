@@ -5,6 +5,8 @@ from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 import json
 
+from django.views.decorators.csrf import csrf_exempt
+
 def home(request):
     if request.user.is_authenticated:
         return JsonResponse({'message': f"Hello, {request.user.username}!"})
@@ -13,7 +15,8 @@ def home(request):
 
 # def home(request):
 #     return HttpResponse(f"Hello, {request.user.username}!")
-
+    
+@csrf_exempt
 def register(request):
     if request.method == 'POST':
         try:
