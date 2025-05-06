@@ -18,6 +18,15 @@ def home(request):
     
 @csrf_exempt
 def register(request):
+    # Handle CORS preflight
+    if request.method == 'OPTIONS':
+        response = JsonResponse({'detail': 'CORS preflight'})
+        response["Access-Control-Allow-Origin"] = "http://localhost:5174"
+        response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type"
+        return response
+
+    # Handle POST request
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -26,13 +35,18 @@ def register(request):
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
+        if not username or not password:
+            return JsonResponse({'error': 'Username and password are required.'}, status=400)
+
         if User.objects.filter(username=username).exists():
             return JsonResponse({'error': 'Username already exists.'}, status=400)
-        else:
-            User.objects.create_user(username=username, password=password)
-            return JsonResponse({'message': 'User registered successfully.'})
 
+        User.objects.create_user(username=username, password=password)
+        return JsonResponse({'message': 'User registered successfully.'})
+
+    # If any other method, return 405
     return JsonResponse({'error': 'Only POST method allowed.'}, status=405)
+
 
    
 # def register(request):
