@@ -193,7 +193,7 @@ if __name__ == "__main__":
     new_nn.eval()
 
     # save nn model
-    torch.save(new_nn.state_dict(), "nn_model.pt")
+    torch.save(new_nn.state_dict(), os.path.join(BASE_DIR, "nn_model.pt"))
 
     # === Step 1: Find best threshold on validation set ===
     val_probs = []
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     precisions, recalls, thresholds = precision_recall_curve(val_labels, val_probs)
     f1s = 2 * (precisions * recalls) / (precisions + recalls + 1e-8)
     best_idx = f1s.argmax()
-    best_thresh = 0.2464#thresholds[best_idx]
+    best_thresh = thresholds[best_idx]
 
     print(f"\nBest threshold from validation: {best_thresh:.4f}")
     print(f"Val Precision: {precisions[best_idx]:.4f}, Recall: {recalls[best_idx]:.4f}, F1: {f1s[best_idx]:.4f}")
