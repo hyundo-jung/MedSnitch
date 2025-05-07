@@ -31,14 +31,14 @@ class HealthcareDataPreprocessor:
         diagnosis_columns = [f'ClmDiagnosisCode_{i}' for i in range(1, 11)]
         df['num_diagnoses'] = (~df[diagnosis_columns].isna() & (df[diagnosis_columns] != 'NA')).sum(axis=1)
         
-        # Keep the first diagnosis code
-        df['first_diagnosis'] = df['ClmDiagnosisCode_1']
+        # Keep the first diagnosis code (and strip whitespace)
+        df['first_diagnosis'] = df['ClmDiagnosisCode_1'].astype(str).str.strip()
         
         # Load the mapping file
         mapping_df = pd.read_csv(self.mappings_dir / "$dxref 2015.csv", skiprows=1)
         
-        # Clean up the data - the column names are wrapped in single quotes
-        mapping_df["'ICD-9-CM CODE'"] = mapping_df["'ICD-9-CM CODE'"].str.strip("'")
+        # Clean up the data: strip quotes and whitespace
+        mapping_df["'ICD-9-CM CODE'"] = mapping_df["'ICD-9-CM CODE'"].str.strip("'").str.strip()
         mapping_df["'CCS CATEGORY'"] = mapping_df["'CCS CATEGORY'"].str.strip("'").str.strip()
         
         # Create a mapping dictionary from ICD-9 code to CCS category
@@ -49,12 +49,13 @@ class HealthcareDataPreprocessor:
         
         # Map the first diagnosis code to its category
         df['DiagnosisCategory'] = df['first_diagnosis'].map(dx_to_category)
-        df['DiagnosisCategory'] = df['DiagnosisCategory'].fillna(-1)  # -1 for unknown categories
+        df['DiagnosisCategory'] = df['DiagnosisCategory'].fillna(-1).astype(int) + 1
         
         # Drop original diagnosis code columns
-        df = df.drop(columns=diagnosis_columns)
+        df = df.drop(columns=diagnosis_columns + ['first_diagnosis'])
         
         return df
+
 
     def process_procedure_codes(self, df: pd.DataFrame) -> pd.DataFrame:
         """Process procedure codes, counting non-empty and non-NA codes per claim"""
@@ -66,6 +67,7 @@ class HealthcareDataPreprocessor:
         
         # Keep the first procedure code
         df['first_procedure'] = df['ClmProcedureCode_1']
+        df["first_procedure"] = df["first_procedure"].fillna(0)
         
         # Drop original procedure code columns
         df = df.drop(columns=procedure_columns)
@@ -159,7 +161,8 @@ class HealthcareDataPreprocessor:
         
         # Identify numerical columns (excluding is_fraudulent as it's our target)
         numerical_cols = df.select_dtypes(include=['int64', 'float64']).columns
-        numerical_cols = [col for col in numerical_cols if col != 'is_fraudulent']
+        exclude_cols = ['claimType', 'is_fraudulent', 'DiagnosisCategory', 'first_procedure']
+        numerical_cols = [col for col in numerical_cols if col not in exclude_cols]
         
         # Scale numerical columns
         df[numerical_cols] = self.scaler.fit_transform(df[numerical_cols])
@@ -241,7 +244,11 @@ class HealthcareDataPreprocessor:
         cols.remove('is_fraudulent')
         cols.append('is_fraudulent')
         combined_df = combined_df[cols]
-        
+        # Print fraud distribution
+        fraud_counts = combined_df['is_fraudulent'].value_counts().sort_index()
+        logger.info(f"Fraudulent claims: {fraud_counts.get(1, 0)}")
+        logger.info(f"Non-fraudulent claims: {fraud_counts.get(0, 0)}")
+        logger.info(f"Fraud ratio: {fraud_counts.get(1, 0) / fraud_counts.sum():.4f}")
         return combined_df
 
     def preprocess(self) -> None:

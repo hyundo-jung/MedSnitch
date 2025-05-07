@@ -14,7 +14,7 @@ class ModelHandler:
 
     def load_nn_model(self):
         model = test_ml_model.Model()
-        model.load_state_dict(torch.load('model.pth', map_location=torch.device('cpu')))
+        model.load_state_dict(torch.load('nn_model.pt', map_location=torch.device('cpu')))
         model.eval()
         return model
     
@@ -26,7 +26,7 @@ class ModelHandler:
     def predict_nn(self, input_array):
         tensor_input = torch.tensor(input_array, dtype=torch.float32)
         output = torch.sigmoid(self.nn_model(tensor_input))
-        return (output.item() > 0.5)
+        return (output.item() > 0.2464)
 
     def predict_xgb(self, input_array):
         return int(self.xgb_model.predict(input_array.reshape(1, -1))[0])
