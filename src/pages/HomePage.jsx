@@ -29,13 +29,13 @@ function HomePage() {
 
   const data = [
     {title: "What is Medical Bill Fraud?", 
-    blurb: "bill fraud blurb",
+    blurb: "Medical bill fraud occurs when healthcare providers or patients intentionally submit false or inflated claims to insurance payers for financial gain.",
     link: "https://www.google.com/"}, 
     {title: "Training Data Overview", 
-    blurb: "source, summary",
+    blurb: "We train on the Kaggle Healthcare Provider Fraud Detection Analysis dataset—a fully synthetic collection of Medicare-style claims labeled for fraud, designed to mimic real billing patterns without using any personal health information.",
     link: "https://www.google.com/"},
     {title: "Meet the Team", 
-    blurb: "IEEE intro",
+    blurb: "This project was made by a cross-disciplinary team in the Northwestern IEEE student chapter, combining expertise in data science, software development, and project leadership.",
     link: "https://www.google.com/"}]; 
   
   return (
