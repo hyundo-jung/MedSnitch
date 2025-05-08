@@ -10,6 +10,14 @@ from .model import get_model_handler
 
 def submit_claim_data(request):
     if request.method == 'POST':
+
+        claim_date = pd.to_datetime(request.POST.get('ClaimDate'))
+        claim_day_of_year = claim_date.dayofyear
+        is_weekend = claim_date.weekday() >= 5
+        claimday_sin = np.sin(2 * np.pi * claim_day_of_year / 365)
+        claimday_cos = np.cos(2 * np.pi * claim_day_of_year / 365)
+
+
         claim = MedicalClaim.objects.create(
             user=request.user if request.user.is_authenticated else None,
             claimType=request.POST.get('claimType'),
@@ -21,56 +29,73 @@ def submit_claim_data(request):
             first_procedure=request.POST.get('first_procedure'),
             Gender=request.POST.get('Gender'),
             Race=request.POST.get('Race'),
-            isWeekend=request.POST.get('isWeekend'),
+            # isWeekend=request.POST.get('isWeekend'),
             ClaimDuration=request.POST.get('ClaimDuration'),
             ClaimDate=request.POST.get('ClaimDate'),
             Age=request.POST.get('Age'),
-            first_diagnosis=request.POST.get('first_diagnosis')
+
+            isWeekend = is_weekend,
+            ClaimdDy_Sin=claimday_sin,
+            ClaimDay_Cos=claimday_cos
         )
 
-        claim_date = pd.to_datetime(request.POST.get('ClaimDate'))
-        claim_day_of_year = claim_date.dayofyear
-
         input_features = [
-            float(request.POST.get('claimType')),
             float(request.POST.get('StayDuration')),
             float(request.POST.get('cost')),
             float(request.POST.get('num_diagnoses')),
-            float(request.POST.get('DiagnosisCategory')),
             float(request.POST.get('num_procedures')),
-            float(request.POST.get('first_procedure')),
             float(request.POST.get('Gender')),
             float(request.POST.get('Race')),
-            float(request.POST.get('isWeekend')),
+            float(claimday_sin),
+            float(claimday_cos),
             float(request.POST.get('ClaimDuration')),
-            claim_day_of_year, # last three features are not scaled
+
+            float(request.POST.get('claimType')),  # Not scaled
+            float(request.POST.get('first_procedure')),
             float(request.POST.get('Age')),
-            float(request.POST.get('first_diagnosis'))
+            float(is_weekend),
+            float(request.POST.get('DiagnosisCategory'))
         ]
 
-        model_handler = get_model_handler()
+        # Split into scaled and unscaled features
+        scaled_features = input_features[:9]
+        unscaled_features = input_features[9:]
 
-        features_array = np.array(input_features[:11]).reshape(1, -1)
+        # Convert to numpy arrays
+        scaled_array = np.array(scaled_features).reshape(1, -1)
+        unscaled_array = np.array(unscaled_features).reshape(1, -1)
 
-        features_df = pd.DataFrame(features_array, columns=[
-            'claimType', 'StayDuration', 'cost', 'num_diagnoses',
-            'DiagnosisCategory', 'num_procedures', 'first_procedure',
-            'Gender', 'Race', 'isWeekend', 'ClaimDuration'
+        # Corrected DataFrame column names
+        scaled_df = pd.DataFrame(scaled_array, columns=[
+            'StayDuration', 'cost', 'num_diagnoses', 'num_procedures',
+            'Gender', 'Race', 'ClaimDay_sin', 'ClaimDay_cos', 'ClaimDuration'
         ])
 
-        scaled_array = model_handler.scaler.transform(features_df)
+        # Get the model handler with the correct number of diagnostic categories
+        model_handler = get_model_handler()
 
-        complete_input = np.hstack([scaled_array, np.array(input_features[11:]).reshape(1, -1)])
+        # Scale the scaled features
+        scaled_array = model_handler.scaler.transform(scaled_df)
 
-        nn_result = model_handler.predict_nn(torch.tensor(complete_input, dtype=torch.float32))
-        xgb_result = model_handler.predict_xgb(complete_input)
+        # Combine scaled and unscaled features
+        features_array = np.hstack([scaled_array, unscaled_array])
+
+        x_numeric = torch.tensor(features_array[:, :-1], dtype=torch.float32)  # All features except the last one
+        x_diag_cat = torch.tensor(features_array[:, -1], dtype=torch.long)      # Diagnosis category as a separate tensor
+
+        if x_numeric.ndim == 1:
+            x_numeric = x_numeric.unsqueeze(0)
+        if x_diag_cat.ndim == 0:
+            x_diag_cat = x_diag_cat.unsqueeze(0)
+
+        nn_result = model_handler.predict_nn(x_numeric, x_diag_cat)
+        xgb_result = model_handler.predict_xgb(features_array)
 
         with torch.no_grad():
-            raw_nn_output = torch.sigmoid(model_handler.nn_model(torch.tensor(complete_input, dtype=torch.float32))).item()
+            raw_nn_output = torch.sigmoid(model_handler.nn_model(x_numeric, x_diag_cat)).item()
 
-        xgb_probabilities = model_handler.xgb_model.predict_proba(complete_input)[0]
+        xgb_probabilities = model_handler.xgb_model.predict_proba(features_array)[0]
         raw_xgb_output = xgb_probabilities[1]
-
         
         response_data = {
             'nn_prediction': raw_nn_output,

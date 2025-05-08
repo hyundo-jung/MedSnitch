@@ -13,11 +13,14 @@ class MedicalClaim(models.Model):
     first_procedure = models.IntegerField()
     Gender = models.IntegerField()
     Race = models.IntegerField()
-    isWeekend = models.IntegerField()
     ClaimDuration = models.FloatField()
     ClaimDate = models.DateField(null=True, blank=True)
     Age = models.IntegerField()
-    first_diagnosis = models.IntegerField()
+
+    isWeekend = models.BooleanField(default=False)
+    ClaimdDy_Sin = models.FloatField()
+    ClaimDay_Cos = models.FloatField()
+
 
     created_at = models.DateTimeField(auto_now_add=True)
 

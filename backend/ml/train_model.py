@@ -7,6 +7,7 @@ import joblib
 import test_ml_model
 from sklearn.metrics import precision_score, recall_score, f1_score, precision_recall_curve
 from torch.utils.data import DataLoader
+import json
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
@@ -80,7 +81,7 @@ print(test_df["is_fraudulent"].value_counts(normalize=True))
 num_diag_categories = dataset['DiagnosisCategory'].max() + 1
 print("num_diag_categories:", num_diag_categories)
 
-def train_nn_model(epochs=20, patience=5):
+def train_nn_model(epochs=1, patience=5):
     neural_network = test_ml_model.Model(num_diag_categories).to(device)
     optimizer = optim.Adam(neural_network.parameters(), lr=1e-4, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2, factor=0.5)
@@ -140,6 +141,11 @@ def train_nn_model(epochs=20, patience=5):
     if best_model_state is not None:
         neural_network.load_state_dict(best_model_state)
 
+    metadata = {'num_diag_categories': int(num_diag_categories)}
+    metadata_path = os.path.join(BASE_DIR, 'ml', 'nn_model_metadata.json')
+    with open(metadata_path, 'w') as f:
+        json.dump(metadata, f)
+
     print("Finished Training")
     return neural_network
 
@@ -193,7 +199,7 @@ if __name__ == "__main__":
     new_nn.eval()
 
     # save nn model
-    torch.save(new_nn.state_dict(), os.path.join(BASE_DIR, "nn_model.pt"))
+    torch.save(new_nn.state_dict(), os.path.join(BASE_DIR, "ml", "nn_model.pt"))
 
     # === Step 1: Find best threshold on validation set ===
     val_probs = []

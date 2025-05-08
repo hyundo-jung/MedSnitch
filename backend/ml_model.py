@@ -10,6 +10,8 @@ import os
 dataset = pd.read_csv("data/processed/processed_claims.csv")
 shuffled_dataset = dataset.sample(frac=1, random_state=42).reset_index(drop=True)
 
+print(dataset)
+
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, data, labels):
         self.data = torch.tensor(data.values, dtype=torch.float32)
