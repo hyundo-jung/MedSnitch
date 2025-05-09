@@ -1,8 +1,22 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './styles/UploadClaim.css';  // Import the CSS file
+// src/pages/UploadClaim.jsx
 
-function UploadClaim() {
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './styles/UploadClaim.css';  // your CSS
+
+// helper to read Django's CSRF token cookie
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    document.cookie.split(';').forEach(c => {
+      const [k, v] = c.trim().split('=');
+      if (k === name) cookieValue = decodeURIComponent(v);
+    });
+  }
+  return cookieValue;
+}
+
+export default function UploadClaim() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     claimType: '',
@@ -21,26 +35,36 @@ function UploadClaim() {
     first_diagnosis: '',
   });
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = e => {
+    setFormData(f => ({ ...f, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
+
+    // build form-encoded body
+    const body = new URLSearchParams();
+    Object.entries(formData).forEach(([k, v]) => body.append(k, v));
+
+    // grab CSRF token
+    const csrftoken = getCookie('csrftoken');
+
     try {
-      const response = await fetch('http://localhost:8000/api/claims/submit/', {
+      const response = await fetch('http://localhost:8000/submit/', {
         method: 'POST',
+        credentials: 'include',            // send cookie
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrftoken,        // Django CSRF header
         },
-        body: JSON.stringify(formData),
+        body: body.toString(),
       });
 
       if (response.ok) {
         console.log('Claim submitted successfully!');
-        navigate('/');
+        navigate('/');  // redirect after success
       } else {
-        console.error('Failed to submit claim');
+        console.error('Submission failed:', await response.text());
       }
     } catch (err) {
       console.error('Error submitting claim:', err);
@@ -51,20 +75,20 @@ function UploadClaim() {
     <div className="upload-container">
       <h1>Medical Claim Submission</h1>
       <form onSubmit={handleSubmit} className="upload-form">
-        <input name="claimType" type="number" placeholder="Claim Type" onChange={handleChange} /><br />
-        <input name="StayDuration" type="number" step="0.01" placeholder="Stay Duration" onChange={handleChange} required /><br />
-        <input name="cost" type="number" step="0.01" placeholder="Cost" onChange={handleChange} /><br />
-        <input name="num_diagnoses" type="number" placeholder="Number of Diagnoses" onChange={handleChange} /><br />
-        <input name="DiagnosisCategory" placeholder="Diagnosis Category" onChange={handleChange} /><br />
-        <input name="num_procedures" type="number" placeholder="Number of Procedures" onChange={handleChange} /><br />
-        <input name="first_procedure" type="number" placeholder="First Procedure" onChange={handleChange} /><br />
+        <input name="claimType"         type="number" placeholder="Claim Type"         onChange={handleChange} /><br/>
+        <input name="StayDuration"      type="number" step="0.01" placeholder="Stay Duration" required onChange={handleChange} /><br/>
+        <input name="cost"              type="number" step="0.01" placeholder="Cost"               onChange={handleChange} /><br/>
+        <input name="num_diagnoses"     type="number" placeholder="Number of Diagnoses" onChange={handleChange} /><br/>
+        <input name="DiagnosisCategory" type="text"   placeholder="Diagnosis Category" onChange={handleChange} /><br/>
+        <input name="num_procedures"    type="number" placeholder="Number of Procedures" onChange={handleChange} /><br/>
+        <input name="first_procedure"   type="number" placeholder="First Procedure"     onChange={handleChange} /><br/>
 
         <select name="Gender" onChange={handleChange}>
           <option value="">Select Gender</option>
           <option value="0">Other</option>
           <option value="1">Male</option>
           <option value="2">Female</option>
-        </select><br />
+        </select><br/>
 
         <select name="Race" onChange={handleChange}>
           <option value="">Select Race</option>
@@ -75,23 +99,21 @@ function UploadClaim() {
           <option value="4">Asian / Pacific Islander</option>
           <option value="5">Hispanic</option>
           <option value="6">North American Native</option>
-        </select><br />
+        </select><br/>
 
         <select name="isWeekend" onChange={handleChange}>
           <option value="">Weekend?</option>
           <option value="0">No</option>
           <option value="1">Yes</option>
-        </select><br />
+        </select><br/>
 
-        <input name="ClaimDuration" type="number" step="0.01" placeholder="Claim Duration" onChange={handleChange} /><br />
-        <input name="ClaimDate" type="date" placeholder="Claim Date" onChange={handleChange} /><br />
-        <input name="Age" type="number" placeholder="Age" onChange={handleChange} /><br />
-        <input name="first_diagnosis" type="number" placeholder="First Diagnosis" onChange={handleChange} /><br />
+        <input name="ClaimDuration" type="number" step="0.01" placeholder="Claim Duration" onChange={handleChange} /><br/>
+        <input name="ClaimDate"     type="date"               placeholder="Claim Date"     onChange={handleChange} /><br/>
+        <input name="Age"           type="number"             placeholder="Age"             onChange={handleChange} /><br/>
+        <input name="first_diagnosis" type="number"           placeholder="First Diagnosis" onChange={handleChange} /><br/>
 
         <button type="submit">Submit Claim</button>
       </form>
     </div>
   );
 }
-
-export default UploadClaim;
