@@ -55,9 +55,6 @@ class ModelHandler:
         # Return binary classification result based on threshold
         return (output.item() > 0.2464)
 
-        
-        # Return binary classification result based on threshold
-        return (output.item() > 0.2464)
 
     def predict_xgb(self, input_array):
         # Predict using XGBoost model

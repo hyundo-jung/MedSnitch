@@ -20,6 +20,8 @@ class MedicalClaim(models.Model):
     isWeekend = models.BooleanField(default=False)
     ClaimdDy_Sin = models.FloatField()
     ClaimDay_Cos = models.FloatField()
+    nn_prediction = models.FloatField(null=True, blank=True)
+    xgb_prediction = models.FloatField(null=True, blank=True)
 
 
     created_at = models.DateTimeField(auto_now_add=True)

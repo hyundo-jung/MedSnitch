@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Submitted Claims</title>
+</head>
+<body>
+
+<h2>Your Submitted Claims</h2>
+
+{% if user_claims %}
+    <table border="1">
+        <tr>
+            <th>Claim ID</th>
+            <th>Claim Date</th>
+            <th>Claim Type</th>
+            <th>Cost</th>
+            <th>NN Prediction</th>
+            <th>XGB Prediction</th>
+            <th>Label</th>
+        </tr>
+        {% for claim in user_claims %}
+        <tr>
+            <td>{{ claim.id }}</td>
+            <td>{{ claim.ClaimDate }}</td>
+            <td>{{ claim.claimType }}</td>
+            <td>${{ claim.cost|floatformat:2 }}</td>
+            <td>{{ claim.nn_prediction|floatformat:2 }}</td>
+            <td>{{ claim.xgb_prediction|floatformat:2 }}</td>
+            <td>
+                {% if claim.nn_prediction > 0.2464 %}
+                    NN: Fraudulent
+                {% else %}
+                    NN: Legitimate
+                {% endif %}
+            </td>
+            <td>
+                {% if claim.xgb_prediction > 0.5 %}
+                    NN: Fraudulent
+                {% else %}
+                    NN: Legitimate
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No claims submitted yet.</p>
+{% endif %}
+
+</body>
+</html>

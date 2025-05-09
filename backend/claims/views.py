@@ -8,7 +8,7 @@ import torch
 from .model import get_model_handler
 import os
 
-
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,28 +22,6 @@ def submit_claim_data(request):
         is_weekend = claim_date.weekday() >= 5
         claimday_sin = np.sin(2 * np.pi * claim_day_of_year / 365)
         claimday_cos = np.cos(2 * np.pi * claim_day_of_year / 365)
-
-
-        claim = MedicalClaim.objects.create(
-            user=request.user if request.user.is_authenticated else None,
-            claimType=request.POST.get('claimType'),
-            StayDuration=request.POST.get('StayDuration'),
-            cost=request.POST.get('cost'),
-            num_diagnoses=request.POST.get('num_diagnoses'),
-            DiagnosisCategory=request.POST.get('DiagnosisCategory'),
-            num_procedures=request.POST.get('num_procedures'),
-            first_procedure=request.POST.get('first_procedure'),
-            Gender=request.POST.get('Gender'),
-            Race=request.POST.get('Race'),
-            # isWeekend=request.POST.get('isWeekend'),
-            ClaimDuration=request.POST.get('ClaimDuration'),
-            ClaimDate=request.POST.get('ClaimDate'),
-            Age=request.POST.get('Age'),
-
-            isWeekend = is_weekend,
-            ClaimdDy_Sin=claimday_sin,
-            ClaimDay_Cos=claimday_cos
-        )
 
         input_features = [
             float(request.POST.get('StayDuration')),
@@ -104,6 +82,27 @@ def submit_claim_data(request):
 
         xgb_probabilities = model_handler.xgb_model.predict_proba(features_array)[0]
         raw_xgb_output = xgb_probabilities[1]
+
+        claim = MedicalClaim.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            claimType=request.POST.get('claimType'),
+            StayDuration=request.POST.get('StayDuration'),
+            cost=request.POST.get('cost'),
+            num_diagnoses=request.POST.get('num_diagnoses'),
+            DiagnosisCategory=request.POST.get('DiagnosisCategory'),
+            num_procedures=request.POST.get('num_procedures'),
+            first_procedure=request.POST.get('first_procedure'),
+            Gender=request.POST.get('Gender'),
+            Race=request.POST.get('Race'),
+            ClaimDuration=request.POST.get('ClaimDuration'),
+            ClaimDate=request.POST.get('ClaimDate'),
+            Age=request.POST.get('Age'),
+            isWeekend=is_weekend,
+            ClaimdDy_Sin=claimday_sin,
+            ClaimDay_Cos=claimday_cos,
+            nn_prediction=raw_nn_output,
+            xgb_prediction=raw_xgb_output
+        )
         
         response_data = {
             'nn_prediction': raw_nn_output,
@@ -124,3 +123,13 @@ def submit_claim_data(request):
     else:
         # Render a form for GET request
         return render(request, 'claims/submit_claim.html')
+    
+
+
+@login_required
+def list_user_claims(request):
+    user_claims = MedicalClaim.objects.filter(user=request.user).order_by('-created_at')
+
+    return render(request, 'claims/user_claims.html', {
+        'user_claims': user_claims
+    })
