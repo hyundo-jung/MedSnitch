@@ -81,7 +81,7 @@ print(test_df["is_fraudulent"].value_counts(normalize=True))
 num_diag_categories = dataset['DiagnosisCategory'].max() + 1
 print("num_diag_categories:", num_diag_categories)
 
-def train_nn_model(epochs=1, patience=5):
+def train_nn_model(epochs=20, patience=5):
     neural_network = test_ml_model.Model(num_diag_categories).to(device)
     optimizer = optim.Adam(neural_network.parameters(), lr=1e-4, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2, factor=0.5)
