@@ -6,8 +6,14 @@ import pandas as pd
 import json
 import torch
 from .model import get_model_handler
+import os
 
 
+from django.views.decorators.csrf import csrf_exempt
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+@csrf_exempt
 def submit_claim_data(request):
     if request.method == 'POST':
 
@@ -77,11 +83,13 @@ def submit_claim_data(request):
         # Scale the scaled features
         scaled_array = model_handler.scaler.transform(scaled_df)
 
+        mapped_diag_cat = model_handler.map_icd_to_ccs(request.POST.get('DiagnosisCategory'))
+
         # Combine scaled and unscaled features
         features_array = np.hstack([scaled_array, unscaled_array])
 
         x_numeric = torch.tensor(features_array[:, :-1], dtype=torch.float32)  # All features except the last one
-        x_diag_cat = torch.tensor(features_array[:, -1], dtype=torch.long)      # Diagnosis category as a separate tensor
+        x_diag_cat = torch.tensor(mapped_diag_cat, dtype=torch.long)      # Diagnosis category as a separate tensor
 
         if x_numeric.ndim == 1:
             x_numeric = x_numeric.unsqueeze(0)
@@ -103,16 +111,16 @@ def submit_claim_data(request):
             'nn_label': 'Fraudulent' if raw_nn_output > 0.5 else 'Legitimate',
             'xgb_label': 'Fraudulent' if raw_xgb_output > 0.5 else 'Legitimate',
         }
-        return JsonResponse(response_data)
-    else:
-        return JsonResponse({'error': 'Only POST method allowed'}, status=400)
-
-    #     return render(request, 'claims/submit_success.html', {
-    #         'claim_id': claim.id,
-    #         'nn_prediction': f"{raw_nn_output:.4f} ({'Fraudulent' if nn_result else 'Legitimate'})",
-    #         'xgb_prediction': f"{raw_xgb_output:.4f} ({'Fraudulent' if xgb_result else 'Legitimate'})"
-    #     })
-
+    #     return JsonResponse(response_data)
     # else:
-    #     # Render a form for GET request
-    #     return render(request, 'claims/submit_claim.html')
+    #     return JsonResponse({'error': 'Only POST method allowed'}, status=400)
+
+        return render(request, 'claims/submit_success.html', {
+            'claim_id': claim.id,
+            'nn_prediction': f"{raw_nn_output:.4f} ({'Fraudulent' if nn_result else 'Legitimate'})",
+            'xgb_prediction': f"{raw_xgb_output:.4f} ({'Fraudulent' if xgb_result else 'Legitimate'})"
+        })
+
+    else:
+        # Render a form for GET request
+        return render(request, 'claims/submit_claim.html')

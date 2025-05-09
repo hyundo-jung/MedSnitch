@@ -14,6 +14,10 @@ class ModelHandler:
                 metadata = json.load(f)
         self.num_diag_categories = metadata['num_diag_categories']
 
+        mapping_path = os.path.join(BASE_DIR, 'data', 'mappings', 'icd_to_ccs_mapping.json')
+        with open(mapping_path, 'r') as f:
+            self.icd_to_ccs_mapping = json.load(f)
+
 
         self.nn_model = self.load_nn_model(self.num_diag_categories)
         self.xgb_model = self.load_xgb_model()
@@ -33,6 +37,13 @@ class ModelHandler:
         model = XGBClassifier()
         model.load_model(os.path.join(BASE_DIR, 'ml', 'xg.json'))
         return model
+    
+    def map_icd_to_ccs(self, icd_code):
+        icd_code = str(icd_code).strip()  # Ensure no extra spaces
+        mapped_value = self.icd_to_ccs_mapping.get(icd_code, -1)
+        if mapped_value == -1:
+            print(f"Warning: ICD code '{icd_code}' not found in mapping.")
+        return mapped_value
 
     def predict_nn(self, x_numeric, x_diag_cat):
         # Split the input into numeric features and diagnosis category
