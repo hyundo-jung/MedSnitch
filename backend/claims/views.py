@@ -110,19 +110,19 @@ def submit_claim_data(request):
             'nn_label': 'Fraudulent' if raw_nn_output > 0.5 else 'Legitimate',
             'xgb_label': 'Fraudulent' if raw_xgb_output > 0.5 else 'Legitimate',
         }
-    #     return JsonResponse(response_data)
-    # else:
-    #     return JsonResponse({'error': 'Only POST method allowed'}, status=400)
-
-        return render(request, 'claims/submit_success.html', {
-            'claim_id': claim.id,
-            'nn_prediction': f"{raw_nn_output:.4f} ({'Fraudulent' if nn_result else 'Legitimate'})",
-            'xgb_prediction': f"{raw_xgb_output:.4f} ({'Fraudulent' if xgb_result else 'Legitimate'})"
-        })
-
+        return JsonResponse(response_data)
     else:
-        # Render a form for GET request
-        return render(request, 'claims/submit_claim.html')
+        return JsonResponse({'error': 'Only POST method allowed'}, status=400)
+
+    #     return render(request, 'claims/submit_success.html', {
+    #         'claim_id': claim.id,
+    #         'nn_prediction': f"{raw_nn_output:.4f} ({'Fraudulent' if nn_result else 'Legitimate'})",
+    #         'xgb_prediction': f"{raw_xgb_output:.4f} ({'Fraudulent' if xgb_result else 'Legitimate'})"
+    #     })
+
+    # else:
+    #     # Render a form for GET request
+    #     return render(request, 'claims/submit_claim.html')
     
 
 
@@ -130,6 +130,32 @@ def submit_claim_data(request):
 def list_user_claims(request):
     user_claims = MedicalClaim.objects.filter(user=request.user).order_by('-created_at')
 
-    return render(request, 'claims/user_claims.html', {
-        'user_claims': user_claims
-    })
+    claims_list = []
+    for claim in user_claims:
+        claims_list.append({
+            'id': claim.id,
+            'claim_type': claim.claimType,
+            'stay_duration': claim.StayDuration,
+            'cost': claim.cost,
+            'num_diagnoses': claim.num_diagnoses,
+            'diagnosis_category': claim.DiagnosisCategory,
+            'num_procedures': claim.num_procedures,
+            'first_procedure': claim.first_procedure,
+            'gender': claim.Gender,
+            'race': claim.Race,
+            'claim_duration': claim.ClaimDuration,
+            'claim_date': claim.ClaimDate.strftime('%Y-%m-%d'),
+            'age': claim.Age,
+            'is_weekend': claim.isWeekend,
+            'nn_prediction': round(claim.nn_prediction, 2) if claim.nn_prediction is not None else None,
+            'xgb_prediction': round(claim.xgb_prediction, 2) if claim.xgb_prediction is not None else None,
+            'nn_label': 'Fraudulent' if (claim.nn_prediction if claim.nn_prediction is not None else 0) > 0.2464 else 'Legitimate',
+            'xgb_label': 'Fradulent' if (claim.xgb_prediction if claim.xgb_prediction is not None else 0) > 0.5 else 'Legitimate'
+        })
+
+    return JsonResponse({'claims': claims_list}, safe=False)
+
+    # return render(request, 'claims/user_claims.html', {
+    #     'user_claims': user_claims
+    # })
+    
