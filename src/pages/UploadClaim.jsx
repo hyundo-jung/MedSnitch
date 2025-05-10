@@ -1,6 +1,6 @@
 // src/pages/UploadClaim.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles/UploadClaim.css';  // your CSS
 
@@ -50,7 +50,7 @@ export default function UploadClaim() {
     const csrftoken = getCookie('csrftoken');
 
     try {
-      const response = await fetch('http://localhost:8000/submit/', {
+      const response = await fetch('http://localhost:8000/api/claims/submit/', {
         method: 'POST',
         credentials: 'include',            // send cookie
         headers: {
@@ -62,13 +62,20 @@ export default function UploadClaim() {
 
       if (response.ok) {
         console.log('Claim submitted successfully!');
-        navigate('/');  // redirect after success
+        const username = localStorage.getItem('username');
+        navigate(`/profile/${username}`);
+  // redirect after success
       } else {
         console.error('Submission failed:', await response.text());
       }
     } catch (err) {
       console.error('Error submitting claim:', err);
     }
+  };
+
+  // Function to navigate to the profile page
+  const handleBackToProfile = () => {
+    navigate(-1);  // Navigate to the profile page of the current user
   };
 
   return (
@@ -79,7 +86,7 @@ export default function UploadClaim() {
         <input name="StayDuration"      type="number" step="0.01" placeholder="Stay Duration" required onChange={handleChange} /><br/>
         <input name="cost"              type="number" step="0.01" placeholder="Cost"               onChange={handleChange} /><br/>
         <input name="num_diagnoses"     type="number" placeholder="Number of Diagnoses" onChange={handleChange} /><br/>
-        <input name="DiagnosisCategory" type="text"   placeholder="Diagnosis Category" onChange={handleChange} /><br/>
+        <input name="DiagnosisCategory" type="number" placeholder="Diagnosis Category (numeric)" onChange={handleChange} /><br/>
         <input name="num_procedures"    type="number" placeholder="Number of Procedures" onChange={handleChange} /><br/>
         <input name="first_procedure"   type="number" placeholder="First Procedure"     onChange={handleChange} /><br/>
 
@@ -110,10 +117,10 @@ export default function UploadClaim() {
         <input name="ClaimDuration" type="number" step="0.01" placeholder="Claim Duration" onChange={handleChange} /><br/>
         <input name="ClaimDate"     type="date"               placeholder="Claim Date"     onChange={handleChange} /><br/>
         <input name="Age"           type="number"             placeholder="Age"             onChange={handleChange} /><br/>
-        <input name="first_diagnosis" type="number"           placeholder="First Diagnosis" onChange={handleChange} /><br/>
 
         <button type="submit">Submit Claim</button>
       </form>
+      <button onClick={handleBackToProfile}>Back to Profile</button>
     </div>
   );
 }

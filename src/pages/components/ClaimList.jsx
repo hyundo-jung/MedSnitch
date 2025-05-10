@@ -9,12 +9,11 @@ function ClaimList({ data, handleClaimClick, activeClaim }) {
         <p className="claimlist-header">Past Claim Uploads</p>
         {data.map((claim) => (
             <ClaimListItem 
-                key={claim.claimID}
-                name={claim.name} 
-                date={claim.date} 
-                claimID={claim.claimID} 
-                isActive={activeClaim === claim.claimID}
-                OnClick={()=>handleClaimClick(claim.claimID)}
+                key={claim.id}
+                id={claim.id}
+                date={claim.claim_date} 
+                isActive={activeClaim === claim.id}
+                onClick={()=>handleClaimClick(claim.id)}
             />))}
         </>
    )

@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import close from '../assets/close.png'
 import './styles/LoginSignup.css'; 
 
 function LoginPage({ onClose }) {
   const [formData, setFormData] = useState({ username: '', password: '' });
+  const navigate = useNavigate(); 
 
   const handleChange = (e) => {
     setFormData({...formData, [e.target.name]: e.target.value});
@@ -15,12 +17,15 @@ function LoginPage({ onClose }) {
       const response = await fetch('http://localhost:8000/api/accounts/login/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',  // <- Needed to include cookies
         body: JSON.stringify(formData),
       });
-
+  
       if (response.ok) {
+        const result = await response.json();
+        localStorage.setItem('username', result.username);
         console.log('Login successful');
-        onClose();  // Close the popup
+        navigate(`/profile/${result.username}`);  // Redirect to profile page
       } else {
         console.error('Login failed');
       }
@@ -28,6 +33,7 @@ function LoginPage({ onClose }) {
       console.error('Error:', err);
     }
   };
+  
 
   return (
     <div className="popup-backdrop">

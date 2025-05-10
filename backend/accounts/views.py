@@ -62,6 +62,7 @@ def register(request):
 
 import json
 
+@csrf_exempt
 def login_view(request):
     if request.method == 'POST':
         try:
@@ -93,6 +94,7 @@ def login_view(request):
 #             messages.error(request, 'Invalid credentials.')
 #     return render(request, 'accounts/login.html')
 
+@csrf_exempt
 def logout_view(request):
     if request.method == 'POST':
         logout(request)

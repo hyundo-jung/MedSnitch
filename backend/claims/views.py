@@ -15,6 +15,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 @csrf_exempt
 def submit_claim_data(request):
+    print("Request method:", request.method)
+
     if request.method == 'POST':
 
         claim_date = pd.to_datetime(request.POST.get('ClaimDate'))
@@ -69,6 +71,11 @@ def submit_claim_data(request):
         x_numeric = torch.tensor(features_array[:, :-1], dtype=torch.float32)  # All features except the last one
         x_diag_cat = torch.tensor(mapped_diag_cat, dtype=torch.long)      # Diagnosis category as a separate tensor
 
+
+        print("features_array shape:", features_array.shape)
+        print("x_numeric shape:", x_numeric.shape)
+        print("x_diag_cat:", x_diag_cat)
+
         if x_numeric.ndim == 1:
             x_numeric = x_numeric.unsqueeze(0)
         if x_diag_cat.ndim == 0:
@@ -105,8 +112,8 @@ def submit_claim_data(request):
         )
         
         response_data = {
-            'nn_prediction': raw_nn_output,
-            'xgb_prediction': raw_xgb_output,
+            'nn_prediction': float(raw_nn_output),
+            'xgb_prediction': float(raw_xgb_output),
             'nn_label': 'Fraudulent' if raw_nn_output > 0.5 else 'Legitimate',
             'xgb_label': 'Fraudulent' if raw_xgb_output > 0.5 else 'Legitimate',
         }

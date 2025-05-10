@@ -16,7 +16,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage/>} />
         <Route path="/about-us" element={<AboutUs />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="/upload-claim" element={<UploadClaim />} />
       </Routes>
     </Router>
