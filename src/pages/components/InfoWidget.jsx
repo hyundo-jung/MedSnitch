@@ -17,9 +17,15 @@ function InfoWidget({title, blurb, link}) {
             <>
                 <p className="widget-blurb">
                     {blurb}
-                    <a className={`read-more ${isClicked ? 'clicked' : ''}`} onClick={() => navigate('/about-us')}>
-                        Read more {'>'}
+                    <a 
+                        className={`read-more ${isClicked ? 'clicked' : ''}`} 
+                        href={link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                    >
+                    Read more {'>'}
                     </a>
+
                 </p>
                
             </>
