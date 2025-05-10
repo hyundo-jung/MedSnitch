@@ -61,10 +61,15 @@ function ProfilePage() {
     return (
         <div className="profile-page">
             <div className="profile-header">
-                <h1 className="profile-heading">Welcome, {username}</h1>
+              <h1 className="profile-heading">
+                Welcome, <span style={{ color: '#7b2cbf' }}>{username}</span>
+              </h1>
+              <div className="profile-buttons">
                 <button className="upload-button" onClick={handleUploadClick}>Upload New Claim</button>
-                <button className="logout-button" onClick={handleLogout}>Log Out</button>
+                <button className="upload-button" onClick={handleLogout}>Log Out</button>
+              </div>
             </div>
+
             <div className="profile-claims">
                 <div className="profile-claimlist">
                     <ClaimList data={claims} handleClaimClick={handleClaimClick} activeClaim={activeClaim}/>

@@ -5,6 +5,7 @@
     padding: 1rem 2rem;
     box-sizing: border-box;
     background-color: #f5f5f5;
+    border-radius: 15px;
 }
 
 .profile-header {
@@ -13,7 +14,13 @@
     align-items: center;
     margin-bottom: 1rem;
     width: 100%;
-}
+  }
+  
+  .profile-buttons {
+    display: flex;
+    gap: 1rem;
+  }
+  
 
 .profile-heading {
     margin-bottom: 1rem;

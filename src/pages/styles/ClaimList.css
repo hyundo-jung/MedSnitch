@@ -1,6 +1,17 @@
-.claimlist-header {
-    font-size: 1.5rem;
+.profile-claimlist {
+    width: 33.33%;
+    padding: 1rem;
+    border-right: 1px solid #ccc;
+    box-sizing: border-box;
+    overflow-y: auto;
+    background-color: #3C3B3E;
+    color: #f9f9f9;
+  }
+  
+  .claimlist-header {
+    font-size: 1.4rem;
     font-weight: bold;
     margin-bottom: 1rem;
-    color: #3C3B3E;
-}
+    color: #f0f0f0;
+  }
+  
