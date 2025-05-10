@@ -21,11 +21,12 @@ function ClaimSummary({ claim }) {
           <div style={{ width: 100 }}>
             <CircularProgressbar
               value={nnPercentage}
-              text={`${nnPercentage}%`}
+              text={`${(claim.nn_prediction * 100).toFixed(1)}%`}
               styles={buildStyles({
-                pathColor: '#7b2cbf',
+                pathColor: claim.nn_prediction > 0.25 ? '#f76d6d' : '#4caf50',  // red if > 25%, else green
                 textColor: '#3C3B3E',
               })}
+              
             />
             <p style={{ textAlign: 'center', fontSize: '0.9rem' }}>Neural Net</p>
           </div>
@@ -33,11 +34,12 @@ function ClaimSummary({ claim }) {
           <div style={{ width: 100 }}>
             <CircularProgressbar
               value={xgbPercentage}
-              text={`${xgbPercentage}%`}
+              text={`${(claim.xgb_prediction * 100).toFixed(1)}%`}
               styles={buildStyles({
-                pathColor: '#f76d6d',
+                pathColor: claim.xgb_prediction > 0.5 ? '#f76d6d' : '#4caf50',  // red if > 50%, else green
                 textColor: '#3C3B3E',
               })}
+              
             />
             <p style={{ textAlign: 'center', fontSize: '0.9rem' }}>XGBoost</p>
           </div>
