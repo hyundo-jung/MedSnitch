@@ -28,11 +28,9 @@ export default function UploadClaim() {
     first_procedure: '',
     Gender: '',
     Race: '',
-    isWeekend: '',
     ClaimDuration: '',
     ClaimDate: '',
     Age: '',
-    first_diagnosis: '',
   });
 
   const handleChange = e => {
@@ -109,11 +107,7 @@ export default function UploadClaim() {
             <option value="5">Hispanic</option>
             <option value="6">North American Native</option>
           </select>
-          <select name="isWeekend" onChange={handleChange}>
-            <option value="">Weekend?</option>
-            <option value="0">No</option>
-            <option value="1">Yes</option>
-          </select>
+          
           <input name="Age" type="number" placeholder="Age" onChange={handleChange} />
         </fieldset>
 
@@ -121,7 +115,6 @@ export default function UploadClaim() {
           <legend>Diagnosis Info</legend>
           <input name="num_diagnoses" type="number" placeholder="Number of Diagnoses" onChange={handleChange} />
           <input name="DiagnosisCategory" type="number" placeholder="Diagnosis Category (numeric)" onChange={handleChange} />
-          <input name="first_diagnosis" type="number" placeholder="First Diagnosis" onChange={handleChange} />
         </fieldset>
 
         <fieldset className="form-section">
