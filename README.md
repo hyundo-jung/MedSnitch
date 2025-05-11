@@ -32,3 +32,10 @@ To use the scaler in your model:
 import joblib
 scaler = joblib.load('data/processed/scaler.joblib')
 ```
+
+## Interface Demo
+<img width="1005" alt="Screenshot 2025-05-11 at 4 58 03 PM" src="https://github.com/user-attachments/assets/a2dd9424-fcab-428a-803b-8b5bbaf6950c" />
+<img width="927" alt="Screenshot 2025-05-11 at 4 59 48 PM" src="https://github.com/user-attachments/assets/fdc0d23c-65b3-4966-b7f6-fb7a93b9333d" />
+<img width="908" alt="Screenshot 2025-05-11 at 4 57 11 PM" src="https://github.com/user-attachments/assets/7c92ea08-2b05-4b0d-bf75-b6782bf42126" />
+
+
